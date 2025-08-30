@@ -22,3 +22,4 @@ If you wanna run a second node open the main.py file and change the port LOCAL_P
 
 
 
+http://server.matrixcentralcaffee.com:4173/ - BLOCK EXPLORER
