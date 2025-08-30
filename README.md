@@ -16,6 +16,8 @@ pip install numpy
 
 pip install -r requirements.txt
 
+delete wallet_5001.json and wallet_5002.json
+
 python3 main.py
 
 If you wanna run a second node open the main.py file and change the port LOCAL_PORT = 5000 to something else.
