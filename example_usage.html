@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRB SDK Example Usage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>QRB (Quantum Resistant Blockchain) SDK Demo</h1>
+    
+    <div class="container">
+        <h2>Connection Settings</h2>
+        <div class="input-group">
+            <label>API Host:</label>
+            <input type="text" id="apiHost" value="localhost">
+        </div>
+        <div class="input-group">
+            <label>API Port:</label>
+            <input type="number" id="apiPort" value="9001">
+        </div>
+        <button class="button" onclick="initializeQRB()">Connect to QRB</button>
+        <button class="button" onclick="testConnection()">Test Connection</button>
+        <div id="connectionStatus"></div>
+    </div>
+
+    <div class="grid">
+        <div class="container">
+            <h2>Wallet Management</h2>
+            <button class="button" onclick="getWalletInfo()">Get Wallet Info</button>
+            <button class="button" onclick="generateNewWallet()">Generate New Wallet</button>
+            <button class="button" onclick="exportWallet()">Export Wallet</button>
+            <div class="input-group">
+                <label>Import Wallet Data (JSON):</label>
+                <textarea id="importWalletData" rows="3" placeholder='{"private_key": "...", "public_key": "...", "address": "..."}'></textarea>
+                <button class="button" onclick="importWallet()">Import Wallet</button>
+            </div>
+            <div id="walletOutput" class="output"></div>
+        </div>
+
+        <div class="container">
+            <h2>Transactions</h2>
+            <div class="input-group">
+                <label>Recipient Address:</label>
+                <input type="text" id="recipientAddress" placeholder="Enter wallet address">
+            </div>
+            <div class="input-group">
+                <label>Amount:</label>
+                <input type="number" id="sendAmount" step="0.01" placeholder="0.00">
+            </div>
+            <button class="button" onclick="sendTransaction()">Send Transaction</button>
+            <button class="button" onclick="getPendingTransactions()">Get Pending</button>
+            <div id="transactionOutput" class="output"></div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="container">
+            <h2>Token Management</h2>
+            <div class="input-group">
+                <label>Token ID:</label>
+                <input type="text" id="tokenId" placeholder="my_token_001">
+            </div>
+            <div class="input-group">
+                <label>Supply:</label>
+                <input type="number" id="tokenSupply" value="1">
+            </div>
+            <div class="input-group">
+                <label>Metadata (JSON):</label>
+                <textarea id="tokenMetadata" rows="3" placeholder='{"name": "My Token", "description": "..."}'></textarea>
+            </div>
+            <button class="button" onclick="createToken()">Create Token</button>
+            <button class="button" onclick="createNFT()">Create NFT</button>
+            <button class="button" onclick="getMyTokens()">My Tokens</button>
+            <button class="button" onclick="getAllTokens()">All Tokens</button>
+            
+            <div class="input-group">
+                <label>Transfer Token ID:</label>
+                <input type="text" id="transferTokenId" placeholder="token_to_transfer">
+            </div>
+            <div class="input-group">
+                <label>Transfer To:</label>
+                <input type="text" id="transferToAddress" placeholder="recipient_address">
+            </div>
+            <button class="button" onclick="transferToken()">Transfer Token</button>
+            <div id="tokenOutput" class="output"></div>
+        </div>
+
+        <div class="container">
+            <h2>Block Explorer</h2>
+            <button class="button" onclick="getLatestBlock()">Latest Block</button>
+            <button class="button" onclick="getNetworkStats()">Network Stats</button>
+            <button class="button" onclick="getPeers()">Get Peers</button>
+            <button class="button" onclick="getMiningStatus()">Mining Status</button>
+            
+            <div class="input-group">
+                <label>Block Index:</label>
+                <input type="number" id="blockIndex" placeholder="0">
+                <button class="button" onclick="getBlock()">Get Block</button>
+            </div>
+            
+            <div class="input-group">
+                <label>Address to Lookup:</label>
+                <input type="text" id="lookupAddress" placeholder="wallet_address">
+                <button class="button" onclick="lookupAddress()">Lookup Address</button>
+            </div>
+            
+            <div id="explorerOutput" class="output"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Mining Controls</h2>
+        <button class="button" onclick="startMining()">Start Mining</button>
+        <button class="button" onclick="stopMining()">Stop Mining</button>
+        <button class="button" onclick="forceSync()">Force Sync</button>
+        <button class="button" onclick="validateBlockchain()">Validate Blockchain</button>
+        <div id="miningOutput" class="output"></div>
+    </div>
+
+    <script src="qrb-sdk.js"></script>
+    <script>
+        let qrb = null;
+
+        function log(output, message, isError = false) {
+            const outputElement = document.getElementById(output);
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${typeof message === 'object' ? JSON.stringify(message, null, 2) : message}\n`;
+            outputElement.textContent += logMessage;
+            outputElement.scrollTop = outputElement.scrollHeight;
+            
+            if (isError) {
+                console.error(message);
+            } else {
+                console.log(message);
+            }
+        }
+
+        function showStatus(message, isError = false) {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.className = `status ${isError ? 'error' : 'success'}`;
+            statusDiv.textContent = message;
+        }
+
+        async function initializeQRB() {
+            try {
+                const host = document.getElementById('apiHost').value;
+                const port = document.getElementById('apiPort').value;
+                qrb = new QRB(host, parseInt(port));
+                showStatus(`Connected to QRB at ${host}:${port}`);
+            } catch (error) {
+                showStatus(`Failed to initialize: ${error.message}`, true);
+            }
+        }
+
+        async function testConnection() {
+            if (!qrb) {
+                showStatus('Please initialize QRB first', true);
+                return;
+            }
+            
+            try {
+                const connected = await qrb.testConnection();
+                showStatus(connected ? 'Connection successful!' : 'Connection failed', !connected);
+            } catch (error) {
+                showStatus(`Connection test failed: ${error.message}`, true);
+            }
+        }
+
+        // Wallet functions
+        async function getWalletInfo() {
+            if (!qrb) return;
+            try {
+                const wallet = await qrb.wallet.connect();
+                log('walletOutput', `Wallet Info: ${JSON.stringify(wallet, null, 2)}`);
+            } catch (error) {
+                log('walletOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function generateNewWallet() {
+            if (!qrb) return;
+            try {
+                const result = await qrb.wallet.generate();
+                log('walletOutput', `New wallet generated: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('walletOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function exportWallet() {
+            if (!qrb) return;
+            try {
+                const walletData = await qrb.wallet.export();
+                log('walletOutput', `Wallet Export: ${JSON.stringify(walletData, null, 2)}`);
+            } catch (error) {
+                log('walletOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function importWallet() {
+            if (!qrb) return;
+            try {
+                const walletData = JSON.parse(document.getElementById('importWalletData').value);
+                const result = await qrb.wallet.import(walletData);
+                log('walletOutput', `Wallet imported: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('walletOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        // Transaction functions
+        async function sendTransaction() {
+            if (!qrb) return;
+            try {
+                const recipient = document.getElementById('recipientAddress').value;
+                const amount = parseFloat(document.getElementById('sendAmount').value);
+                const result = await qrb.wallet.send(recipient, amount);
+                log('transactionOutput', `Transaction sent: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('transactionOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function getPendingTransactions() {
+            if (!qrb) return;
+            try {
+                const pending = await qrb.client.getPendingTransactions();
+                log('transactionOutput', `Pending transactions: ${JSON.stringify(pending, null, 2)}`);
+            } catch (error) {
+                log('transactionOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        // Token functions
+        async function createToken() {
+            if (!qrb) return;
+            try {
+                const tokenId = document.getElementById('tokenId').value;
+                const supply = parseInt(document.getElementById('tokenSupply').value);
+                const metadata = JSON.parse(document.getElementById('tokenMetadata').value || '{}');
+                const result = await qrb.tokens.createFungibleToken(tokenId, supply, metadata);
+                log('tokenOutput', `Token created: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('tokenOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function createNFT() {
+            if (!qrb) return;
+            try {
+                const tokenId = document.getElementById('tokenId').value;
+                const metadata = JSON.parse(document.getElementById('tokenMetadata').value || '{}');
+                const result = await qrb.client.createNFT(tokenId, metadata);
+                log('tokenOutput', `NFT created: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('tokenOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function getMyTokens() {
+            if (!qrb) return;
+            try {
+                const tokens = await qrb.wallet.getTokens();
+                log('tokenOutput', `My tokens: ${JSON.stringify(tokens, null, 2)}`);
+            } catch (error) {
+                log('tokenOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function getAllTokens() {
+            if (!qrb) return;
+            try {
+                const tokens = await qrb.client.getAllTokens();
+                log('tokenOutput', `All tokens: ${JSON.stringify(tokens, null, 2)}`);
+            } catch (error) {
+                log('tokenOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function transferToken() {
+            if (!qrb) return;
+            try {
+                const tokenId = document.getElementById('transferTokenId').value;
+                const recipient = document.getElementById('transferToAddress').value;
+                const result = await qrb.tokens.transferToken(tokenId, recipient);
+                log('tokenOutput', `Token transferred: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('tokenOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        // Explorer functions
+        async function getLatestBlock() {
+            if (!qrb) return;
+            try {
+                const block = await qrb.client.getLatestBlock();
+                log('explorerOutput', `Latest block: ${JSON.stringify(block, null, 2)}`);
+            } catch (error) {
+                log('explorerOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function getNetworkStats() {
+            if (!qrb) return;
+            try {
+                const stats = await qrb.client.getNetworkStats();
+                log('explorerOutput', `Network stats: ${JSON.stringify(stats, null, 2)}`);
+            } catch (error) {
+                log('explorerOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function getPeers() {
+            if (!qrb) return;
+            try {
+                const peers = await qrb.client.getPeers();
+                log('explorerOutput', `Peers: ${JSON.stringify(peers, null, 2)}`);
+            } catch (error) {
+                log('explorerOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function getMiningStatus() {
+            if (!qrb) return;
+            try {
+                const status = await qrb.client.getMiningStatus();
+                log('explorerOutput', `Mining status: ${JSON.stringify(status, null, 2)}`);
+            } catch (error) {
+                log('explorerOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function getBlock() {
+            if (!qrb) return;
+            try {
+                const index = parseInt(document.getElementById('blockIndex').value);
+                const block = await qrb.client.getBlock(index);
+                log('explorerOutput', `Block ${index}: ${JSON.stringify(block, null, 2)}`);
+            } catch (error) {
+                log('explorerOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function lookupAddress() {
+            if (!qrb) return;
+            try {
+                const address = document.getElementById('lookupAddress').value;
+                const balance = await qrb.client.getAddressBalance(address);
+                const transactions = await qrb.client.getAddressTransactions(address);
+                const tokens = await qrb.client.getTokensByOwner(address);
+                
+                const result = { balance, transactions, tokens };
+                log('explorerOutput', `Address ${address}: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('explorerOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        // Mining functions
+        async function startMining() {
+            if (!qrb) return;
+            try {
+                const result = await qrb.client.startMining();
+                log('miningOutput', `Mining started: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('miningOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function stopMining() {
+            if (!qrb) return;
+            try {
+                const result = await qrb.client.stopMining();
+                log('miningOutput', `Mining stopped: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('miningOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function forceSync() {
+            if (!qrb) return;
+            try {
+                const result = await qrb.client.forceSync();
+                log('miningOutput', `Sync completed: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('miningOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function validateBlockchain() {
+            if (!qrb) return;
+            try {
+                const result = await qrb.client.validateBlockchain();
+                log('miningOutput', `Validation result: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('miningOutput', `Error: ${error.message}`, true);
+            }
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            initializeQRB();
+        };
+    </script>
+</body>
+</html>
